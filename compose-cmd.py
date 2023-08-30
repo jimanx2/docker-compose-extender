@@ -2,9 +2,10 @@
 
 import sys, logging, subprocess
 
-from os import path
+from os import path, environ
 from datetime import datetime
 from optparse import (OptionParser,BadOptionError,AmbiguousOptionError)
+from dotenv import dotenv_values
 from actions import *
 
 class PassThroughOptionParser(OptionParser):
@@ -67,6 +68,11 @@ if __name__ == "__main__":
 
     compose_path = find_in_parent(composes_filename)
 
+    env_path = path.join(path.realpath("."), ".env")
+    env_sub = {}
+    if path.isfile(env_path):
+        env_sub = dotenv_values(env_path)
+
     # if not compose_path:
     #    raise Exception(f"Failed to find {composes_filename} file in current directory or parent directories.")
 
@@ -92,7 +98,8 @@ if __name__ == "__main__":
         'stdout': open('/dev/stdout', 'a'),
         'stderr': open('/dev/stderr', 'a'),
         'stdin' : open('/dev/stdin', 'r'),
-        'docker_composes': yaml_files
+        'docker_composes': yaml_files,
+        'env': env_sub
     }
 
     if len(args) > 0:
@@ -113,7 +120,7 @@ if __name__ == "__main__":
     
     logging.debug(f"Docker Compose CMD: {docker_compose_cmd}")
 
-    subprocess.run(docker_compose_cmd, stdout=meta['stdout'], stderr=meta['stderr'], stdin=meta['stdin'])
+    subprocess.run(docker_compose_cmd, stdout=meta['stdout'], stderr=meta['stderr'], stdin=meta['stdin'], env=env_sub)
 
     for handle in meta:
         if not hasattr(meta[handle], 'close'):

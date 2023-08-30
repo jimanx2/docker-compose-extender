@@ -20,6 +20,9 @@ Note: Add above line to .bashrc for easy access
 
 ### `down`
 
+This action will cause the script to ask user confirmation before proceeding with the  
+actual `down` action
+
 Sample run:
 ```sh
 $ @compose up -d
@@ -39,6 +42,8 @@ $ @compose down --force
 
 ### `recreate`
 
+This action will run both `docker-compose down` and `docker-compose up -d` in single command
+
 Sample run:
 ```sh
 $ @compose up -d
@@ -51,6 +56,9 @@ $ @compose recreate
 ```
 
 ### `xrun`
+
+This action will execute a `docker run <image> <entrypoint:default:/bin/sh>` and automatically  
+mount current directory to /app inside the container
 
 Sample run:
 ```sh

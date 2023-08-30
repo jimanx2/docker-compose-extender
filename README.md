@@ -1,5 +1,7 @@
 # docker-compose-extender
 
+A bash function to shorten `docker-compose -f 1.yaml -f 2.yaml -f 3.yaml` into `@compose`. Also adds extensibility by wrapping the docker-compose command.
+
 ## Requirements
 
 1. python3
@@ -8,8 +10,8 @@
 ## Usage
 
 1. clone this repo somewhere accessible (eg: $HOME/docker-compose-extender)
-2. run the following:
-
+2. create or modify `.composes` file (optional)
+3. run the following:
 ```
 source $HOME/docker-compose-extender/docker-compose-extender.bash
 ```

@@ -34,7 +34,7 @@ filemode='a+')
 # options
 usage = "usage: @compose [options] args"
 parser = PassThroughOptionParser(usage)
-parser.add_option("-f", "--file", dest="composes_filename", help="read data from COMPOSES_FILENAME (default: .composes)")
+parser.add_option("-c", "--compose-file", dest="composes_filename", help="read data from COMPOSES_FILENAME (default: .composes)")
 (options, args) = parser.parse_args()
 
 def find_in_parent(file, dir = path.realpath('.'), level = 0):
@@ -78,8 +78,7 @@ if __name__ == "__main__":
     #    raise Exception(f"Failed to find {composes_filename} file in current directory or parent directories.")
 
     docker_compose_cmd = [
-        "/usr/bin/docker",
-        "compose"
+        "/usr/bin/docker-compose"
     ]
 
     if compose_path != False:
@@ -95,8 +94,6 @@ if __name__ == "__main__":
     for filename in yaml_files:
         logging.debug(f"Loading yaml: {filename}")
         docker_compose_cmd = docker_compose_cmd + ["-f", filename]
-
-    logging.debug(f"Docker Compose CMD: {docker_compose_cmd}")
 
     meta = {
         'stdout': open('/dev/stdout', 'a'),
@@ -123,7 +120,10 @@ if __name__ == "__main__":
     
     logging.debug(f"Docker Compose CMD: {docker_compose_cmd}")
 
-    subprocess.Popen(docker_compose_cmd, stdout=meta['stdout'], stderr=meta['stderr'], stdin=meta['stdin'], env=env_sub).wait()
+    try:
+        subprocess.run(docker_compose_cmd, stdout=meta['stdout'], stderr=meta['stderr'], stdin=meta['stdin'], env=env_sub)
+    except KeyboardInterrupt as e:
+        pass
 
     for handle in meta:
         if not hasattr(meta[handle], 'close'):

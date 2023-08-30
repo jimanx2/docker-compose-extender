@@ -21,9 +21,12 @@ def handle(args, stdout: None, stdin: None, stderr: None, docker_composes: [], e
 
     for key in env:
         docker_run_cmd += ["-e", f"{key}={env[key]}"]
-        
+
     docker_run_cmd += args
     
-    subprocess.Popen(docker_run_cmd, stdout=stdout, stderr=stderr, stdin=stdin, env=env).wait()
+    try:
+        subprocess.run(docker_run_cmd, stdout=stdout, stderr=stderr, stdin=stdin, env=env)
+    except KeyboardInterrupt as e:
+        pass
 
     return True

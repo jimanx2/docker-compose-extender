@@ -69,7 +69,9 @@ if __name__ == "__main__":
     compose_path = find_in_parent(composes_filename)
 
     env_path = path.join(path.realpath("."), ".env")
-    env_sub = {}
+    env_sub = {
+        'PATH': environ['PATH']
+    }
     if path.isfile(env_path):
         for key in dotenv_values(env_path):
             env_sub[key] = dotenv_values(env_path)[key]

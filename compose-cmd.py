@@ -88,9 +88,12 @@ if __name__ == "__main__":
             yaml_files = map(lambda x: x.strip(), f_composes.readlines())
             yaml_files = [x for x in yaml_files if len(x) > 0 and x[0] != '#']
 
-        for filename in yaml_files:
-            logging.debug(f"Loading yaml: {filename}")
-            docker_compose_cmd = docker_compose_cmd + ["-f", filename]
+    else:
+        yaml_files = ["docker-compose.yaml"]
+
+    for filename in yaml_files:
+        logging.debug(f"Loading yaml: {filename}")
+        docker_compose_cmd = docker_compose_cmd + ["-f", filename]
 
     logging.debug(f"Docker Compose CMD: {docker_compose_cmd}")
 

@@ -80,19 +80,19 @@ if __name__ == "__main__":
 
         with open(compose_path) as f_composes:
             yaml_files = map(lambda x: x.strip(), f_composes.readlines())
+            yaml_files = [x for x in yaml_files if len(x) > 0 and x[0] != '#']
 
         for filename in yaml_files:
-            if len(filename.strip()) == 0 or filename.strip()[0] == '#':
-                continue
-            print(f"Loading yaml: {filename}")
+            logging.debug(f"Loading yaml: {filename}")
             docker_compose_cmd = docker_compose_cmd + ["-f", filename]
 
     logging.debug(f"Docker Compose CMD: {docker_compose_cmd}")
 
-    IOs = {
+    meta = {
         'stdout': open('/dev/stdout', 'a'),
         'stderr': open('/dev/stderr', 'a'),
-        'stdin' : open('/dev/stdin', 'r')
+        'stdin' : open('/dev/stdin', 'r'),
+        'docker_composes': yaml_files
     }
 
     if len(args) > 0:
@@ -101,7 +101,11 @@ if __name__ == "__main__":
 
         docker_cmd_action = local_cmd_action
         if (known_local_action(local_cmd_action)):
-            (docker_cmd_action, args) = execute_local_action(local_cmd_action, args, **IOs)
+            ret = execute_local_action(local_cmd_action, args, **meta)
+            if ret == False or ret == True:
+                sys.exit(0)
+            (docker_cmd_action, args) = ret
+            
 
         docker_compose_cmd = docker_compose_cmd + [docker_cmd_action] + args
 
@@ -109,7 +113,9 @@ if __name__ == "__main__":
     
     logging.debug(f"Docker Compose CMD: {docker_compose_cmd}")
 
-    subprocess.run(docker_compose_cmd, stdout=IOs['stdout'], stderr=IOs['stderr'], stdin=IOs['stdin'])
+    subprocess.run(docker_compose_cmd, stdout=meta['stdout'], stderr=meta['stderr'], stdin=meta['stdin'])
 
-    for handle in IOs:
-        IOs[handle].close()
+    for handle in meta:
+        if not hasattr(meta[handle], 'close'):
+            continue
+        meta[handle].close()

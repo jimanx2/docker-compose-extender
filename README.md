@@ -4,8 +4,9 @@ A bash function to shorten `docker-compose -f 1.yaml -f 2.yaml -f 3.yaml` into `
 
 ## Requirements
 
-1. python3
-2. `pip3 install -r requirements.txt`
+1. bash
+2. python3
+3. `pip3 install -r requirements.txt`
 
 ## Usage
 

@@ -5,9 +5,7 @@ import sys, logging, subprocess
 from os import path
 from datetime import datetime
 from optparse import (OptionParser,BadOptionError,AmbiguousOptionError)
-import actions
-
-print(actions)
+from actions import *
 
 class PassThroughOptionParser(OptionParser):
     """
@@ -49,10 +47,12 @@ def find_in_parent(file, dir = path.realpath('.'), level = 0):
     return filename
     
 def known_local_action(action):
+    if (f"actions.{action}" in sys.modules):
+        return True
     return False
 
-def execute_local_action(action):
-    return action
+def execute_local_action(action, args, **kwargs):
+    return sys.modules[f"actions.{action}"].handle(args, **kwargs)
 
 if __name__ == "__main__":
     # Creating an object
@@ -82,28 +82,34 @@ if __name__ == "__main__":
             yaml_files = map(lambda x: x.strip(), f_composes.readlines())
 
         for filename in yaml_files:
+            if len(filename.strip()) == 0 or filename.strip()[0] == '#':
+                continue
             print(f"Loading yaml: {filename}")
             docker_compose_cmd = docker_compose_cmd + ["-f", filename]
 
     logging.debug(f"Docker Compose CMD: {docker_compose_cmd}")
 
-    local_cmd_action = args.pop(0)
-    logging.debug(f"Action: {local_cmd_action}, args: {args}")
+    IOs = {
+        'stdout': open('/dev/stdout', 'a'),
+        'stderr': open('/dev/stderr', 'a'),
+        'stdin' : open('/dev/stdin', 'r')
+    }
 
-    docker_cmd_action = local_cmd_action
-    if (known_local_action(local_cmd_action)):
-        docker_cmd_action = execute_local_action(local_cmd_action)
+    if len(args) > 0:
+        local_cmd_action = args.pop(0)
+        logging.debug(f"Action: {local_cmd_action}, args: {args}")
 
-    docker_compose_cmd = docker_compose_cmd + [docker_cmd_action] + args
+        docker_cmd_action = local_cmd_action
+        if (known_local_action(local_cmd_action)):
+            (docker_cmd_action, args) = execute_local_action(local_cmd_action, args, **IOs)
+
+        docker_compose_cmd = docker_compose_cmd + [docker_cmd_action] + args
+
+    docker_compose_cmd = docker_compose_cmd + args
     
     logging.debug(f"Docker Compose CMD: {docker_compose_cmd}")
 
-    stdout = open('/dev/stdout', 'a')
-    stderr = open('/dev/stderr', 'a')
-    stdin = open('/dev/stdin', 'r')
+    subprocess.run(docker_compose_cmd, stdout=IOs['stdout'], stderr=IOs['stderr'], stdin=IOs['stdin'])
 
-    subprocess.run(docker_compose_cmd, stdout=stdout, stderr=stderr, stdin=stdin)
-
-    stdin.close()
-    stderr.close()
-    stdout.close()
+    for handle in IOs:
+        IOs[handle].close()

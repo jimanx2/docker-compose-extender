@@ -71,7 +71,8 @@ if __name__ == "__main__":
     env_path = path.join(path.realpath("."), ".env")
     env_sub = {}
     if path.isfile(env_path):
-        env_sub = dotenv_values(env_path)
+        for key in dotenv_values(env_path):
+            env_sub[key] = dotenv_values(env_path)[key]
 
     # if not compose_path:
     #    raise Exception(f"Failed to find {composes_filename} file in current directory or parent directories.")
@@ -115,15 +116,14 @@ if __name__ == "__main__":
             if ret == False or ret == True:
                 sys.exit(0)
             (docker_cmd_action, args) = ret
-            
 
-        docker_compose_cmd = docker_compose_cmd + [docker_cmd_action] + args
-
-    docker_compose_cmd = docker_compose_cmd + args
+        docker_compose_cmd += [docker_cmd_action] + args
+    else:
+        docker_compose_cmd += args
     
     logging.debug(f"Docker Compose CMD: {docker_compose_cmd}")
 
-    subprocess.run(docker_compose_cmd, stdout=meta['stdout'], stderr=meta['stderr'], stdin=meta['stdin'], env=env_sub)
+    subprocess.Popen(docker_compose_cmd, stdout=meta['stdout'], stderr=meta['stderr'], stdin=meta['stdin'], env=env_sub).wait()
 
     for handle in meta:
         if not hasattr(meta[handle], 'close'):

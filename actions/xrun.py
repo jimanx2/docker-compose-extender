@@ -18,8 +18,12 @@ def handle(args, stdout: None, stdin: None, stderr: None, docker_composes: [], e
         docker_run_cmd += [entrypoint]
     
     docker_run_cmd += ["--entrypoint", entrypoint]
+
+    for key in env:
+        docker_run_cmd += ["-e", f"{key}={env[key]}"]
+        
     docker_run_cmd += args
     
-    subprocess.run(docker_run_cmd, stdout=stdout, stderr=stderr, stdin=stdin, env=env)
+    subprocess.Popen(docker_run_cmd, stdout=stdout, stderr=stderr, stdin=stdin, env=env).wait()
 
     return True
